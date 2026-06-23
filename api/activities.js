@@ -1,25 +1,37 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createErrorResponse, createSuccessResponse } from "./utils.js";
+
+// NOTE: Sur Vercel, le filesystem des fonctions n'est pas persistant.
+// On stocke donc en mémoire pour éviter un “GET vide” après POST.
+// (Pour un vrai multi-utilisateurs, il faut une DB type KV/Redis/Postgres.)
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE = path.join(__dirname, "..", "activites.json");
 
-function readData() {
-  if (!fs.existsSync(DATA_FILE)) return [];
+let memoryData = null;
+let memoryLoaded = false;
+
+function loadOnce() {
+  if (memoryLoaded) return;
+  memoryLoaded = true;
   try {
-    const raw = fs.readFileSync(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, "utf8");
+      const parsed = JSON.parse(raw);
+      memoryData = Array.isArray(parsed) ? parsed : [];
+    } else {
+      memoryData = [];
+    }
   } catch {
-    return [];
+    memoryData = [];
   }
 }
 
-function writeData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+function readData() {
+  loadOnce();
+  return memoryData;
 }
 
 export default async function handler(req, res) {
@@ -43,7 +55,6 @@ export default async function handler(req, res) {
       inscrit: Boolean(item.inscrit),
       note: item.note || "",
     });
-    writeData(data);
     return res.status(200).json({ ok: true });
   }
 
@@ -54,7 +65,6 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Activité introuvable" });
     }
     data.splice(idx, 1);
-    writeData(data);
     return res.status(200).json({ ok: true });
   }
 
