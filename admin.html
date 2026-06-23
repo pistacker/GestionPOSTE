@@ -296,10 +296,8 @@
       }
       async function refreshData() {
         try {
-          const base =
-            window.location.origin +
-            window.location.pathname.replace(/\/[^/]*$/, "/");
-          const res = await fetch(base + "api/activities");
+          const res = await fetch("/api/activities");
+
           const data = await res.json().catch(() => ({}));
           const list = document.getElementById("list");
           if (!res.ok) {
@@ -352,10 +350,7 @@
             inscrit: document.getElementById("statut").value === "1",
             note: document.getElementById("note").value,
           };
-          const base =
-            window.location.origin +
-            window.location.pathname.replace(/\/[^/]*$/, "/");
-          const res = await fetch(base + "api/activities", {
+          const res = await fetch("/api/activities", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -376,10 +371,8 @@
         }
       }
       async function editActivity(index) {
-        const base =
-          window.location.origin +
-          window.location.pathname.replace(/\/[^/]*$/, "/");
-        const res = await fetch(base + "api/activities");
+        const res = await fetch("/api/activities");
+
         const data = await res.json();
         const item = data[index];
         if (!item) return;
@@ -398,10 +391,7 @@
       }
       async function deleteActivity(index) {
         if (!confirm("Supprimer cette activité ?")) return;
-        const base =
-          window.location.origin +
-          window.location.pathname.replace(/\/[^/]*$/, "/");
-        const res = await fetch(`${base}api/activities/${index}`, {
+        const res = await fetch(`/api/activities/${index}`, {
           method: "DELETE",
         });
         const data = await res.json();
@@ -411,10 +401,8 @@
       }
       async function generatePdf() {
         try {
-          const base =
-            window.location.origin +
-            window.location.pathname.replace(/\/[^/]*$/, "/");
-          const res = await fetch(base + "api/pdf");
+          const res = await fetch("/api/pdf");
+
           if (!res.ok) {
             const data = await res.json().catch(() => ({}));
             throw new Error(data.error || "Erreur génération PDF");
