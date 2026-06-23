@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   const { password } = req.body || {};
-  const expected = process.env.DPS_PASSWORD;
+  const expected = process.env.DPS_PASSWORD || "8310";
 
   if (!expected || password !== expected) {
     return res.status(401).json({ error: "Mot de passe incorrect" });

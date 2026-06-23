@@ -230,7 +230,8 @@
         const password = document.getElementById("password").value;
         const message = document.getElementById("message");
         try {
-          const res = await fetch("/api/login", {
+          const base = new URL(".", window.location.href).toString();
+          const res = await fetch(base + "api/login", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
