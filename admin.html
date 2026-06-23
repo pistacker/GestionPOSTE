@@ -295,18 +295,27 @@
         msg.textContent = text;
       }
       async function refreshData() {
-        const res = await fetch("/api/activities");
-        const data = await res.json();
-        const list = document.getElementById("list");
-        if (!data.length) {
-          list.innerHTML = '<p class="muted">Aucune activité.</p>';
-          return;
-        }
-        list.innerHTML =
-          "<table><thead><tr><th>Statut</th><th>Association</th><th>Date</th><th>Activité</th><th>Lieu</th><th>Horaire</th><th>Actions</th></tr></thead><tbody>" +
-          data
-            .map(
-              (item, index) => `
+        try {
+          const res = await fetch("/api/activities");
+          const data = await res.json().catch(() => ({}));
+          const list = document.getElementById("list");
+          if (!res.ok) {
+            console.error("refreshData failed", res.status, data);
+            showMessage(
+              "error",
+              `Erreur ${res.status}: ${data.error || "Impossible de charger"}`,
+            );
+            return;
+          }
+          if (!Array.isArray(data) || !data.length) {
+            list.innerHTML = '<p class="muted">Aucune activité.</p>';
+            return;
+          }
+          list.innerHTML =
+            "<table><thead><tr><th>Statut</th><th>Association</th><th>Date</th><th>Activité</th><th>Lieu</th><th>Horaire</th><th>Actions</th></tr></thead><tbody>" +
+            data
+              .map(
+                (item, index) => `
           <tr>
             <td><span class="badge ${item.inscrit ? "ok" : "wait"}">${item.inscrit ? "Inscrit" : "Souhaité"}</span></td>
             <td>${item.asso}</td>
@@ -319,34 +328,46 @@
               <button class="btn btn-danger" onclick="deleteActivity(${index})">Supprimer</button>
             </td>
           </tr>`,
-            )
-            .join("") +
-          "</tbody></table>";
+              )
+              .join("") +
+            "</tbody></table>";
+        } catch (e) {
+          console.error("refreshData error", e);
+          showMessage("error", String(e?.message || e));
+        }
       }
       async function saveActivity(event) {
         event.preventDefault();
-        const payload = {
-          asso: document.getElementById("asso").value,
-          date: document.getElementById("date").value,
-          activite: document.getElementById("activity").value,
-          lieu: document.getElementById("place").value,
-          horaire: document.getElementById("horaire").value,
-          rdv: document.getElementById("rdv").value,
-          inscrit: document.getElementById("statut").value === "1",
-          note: document.getElementById("note").value,
-        };
-        const res = await fetch("/api/activities", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Erreur");
-        showMessage("success", "Activité enregistrée.");
-        document.getElementById("form-activity").reset();
-        refreshData();
+        try {
+          const payload = {
+            asso: document.getElementById("asso").value,
+            date: document.getElementById("date").value,
+            activite: document.getElementById("activity").value,
+            lieu: document.getElementById("place").value,
+            horaire: document.getElementById("horaire").value,
+            rdv: document.getElementById("rdv").value,
+            inscrit: document.getElementById("statut").value === "1",
+            note: document.getElementById("note").value,
+          };
+          const res = await fetch("/api/activities", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            console.error("saveActivity failed", res.status, data);
+            throw new Error(data.error || `Erreur ${res.status}`);
+          }
+          showMessage("success", "Activité enregistrée.");
+          document.getElementById("form-activity").reset();
+          refreshData();
+        } catch (e) {
+          console.error("saveActivity error", e);
+          showMessage("error", String(e?.message || e));
+        }
       }
       async function editActivity(index) {
         const res = await fetch("/api/activities");
