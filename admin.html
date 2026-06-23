@@ -377,10 +377,19 @@
         refreshData();
       }
       async function generatePdf() {
-        const res = await fetch("/api/pdf");
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Erreur");
-        showMessage("success", "PDF généré.");
+        try {
+          const res = await fetch("/api/pdf");
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || "Erreur génération PDF");
+          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          showMessage("success", "PDF généré.");
+        } catch (e) {
+          showMessage("error", String(e.message || e));
+        }
       }
 
       function logout() {

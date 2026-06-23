@@ -30,9 +30,23 @@ export default async function handler(req, res) {
       cwd: path.join(__dirname, ".."),
       stdio: "pipe",
     });
-    return res
-      .status(200)
-      .json({ ok: true, file: "/Liste_activites_secours.pdf" });
+
+    // Après génération, on renvoie le PDF en binaire.
+    const pdfPath = path.join(__dirname, "..", "Liste_activites_secours.pdf");
+    if (!fs.existsSync(pdfPath)) {
+      return res.status(500).json({
+        error: "PDF non trouvé après génération",
+        file: pdfPath,
+      });
+    }
+
+    const pdfBuffer = fs.readFileSync(pdfPath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "inline; filename=Liste_activites_secours.pdf",
+    );
+    res.status(200).send(pdfBuffer);
   } catch (error) {
     return res
       .status(500)
