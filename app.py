@@ -104,7 +104,6 @@ if not st.session_state["connecte"]:
                 elif log_new in utilisateurs:
                     st.error("Ce nom d'utilisateur est déjà pris.")
                 else:
-                    # On ajoute l'utilisateur avec le statut valide = False
                     utilisateurs[log_new] = {
                         "mdp": mdp_new,
                         "valide": False,
@@ -113,10 +112,10 @@ if not st.session_state["connecte"]:
                     sauvegarder_utilisateurs(utilisateurs)
                     st.success("🎉 Demande envoyée avec succès ! Dès que l'administrateur aura validé, vous pourrez vous connecter.")
 
-    st.stop() # Bloque le reste de l'application tant qu'on n'est pas loggé
+    st.stop()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  BARRE LATÉRALE (DECONNEXION & ESPACE ADMIN)
+#  BARRE LATÉRALE (DECONNEXION & ESPACE ADMIN + LISTE DES UTILISATEURS)
 # ═══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown(f"👤 Connecté : **{st.session_state['username']}**")
@@ -133,11 +132,10 @@ with st.sidebar:
         st.markdown("---")
         st.markdown("### 🔒 Demandes en attente")
         
-        # Trouver les utilisateurs non validés
         en_attente = [u for u, info in utilisateurs.items() if not info["valide"]]
         
         if not en_attente:
-            st.write("Aucune demande en attente. 👍")
+            st.caption("Aucune demande en attente. 👍")
         else:
             for user_attente in en_attente:
                 st.write(f"👉 **{user_attente}** demande un accès.")
@@ -154,6 +152,31 @@ with st.sidebar:
                         sauvegarder_utilisateurs(utilisateurs)
                         st.warning(f"Demande de {user_attente} supprimée.")
                         st.rerun()
+        
+        # --- NOUVELLE FONCTIONNALITÉ : LISTE DE TOUS LES UTILISATEURS ET MOTS DE PASSE ---
+        st.markdown("---")
+        st.markdown("### 👥 Liste des utilisateurs")
+        
+        for user, info in utilisateurs.items():
+            statut = "✅ En ligne" if info["valide"] else "⏳ En attente"
+            if info.get("est_admin"):
+                statut = "👑 Admin"
+            
+            # Affichage compact et stylisé de chaque compte pour l'admin
+            st.markdown(f"""
+            <div style="background-color: #f1f4f9; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid {C_BLEU_VIF if info['valide'] else C_ROUGE};">
+                <div style="font-size: 13px; font-weight: bold; color: {C_BLEU_NUIT};">👤 {user}</div>
+                <div style="font-size: 11px; color: #555;">🔑 MDP : <code style="background-color: #e3e8f0; padding: 1px 4px; border-radius: 3px;">{info['mdp']}</code></div>
+                <div style="font-size: 10px; color: #888; font-style: italic; margin-top: 2px;">📌 Statut : {statut}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Option pour supprimer un utilisateur existant directement depuis la liste
+            if not info.get("est_admin"):
+                if st.button(f"Supprimer {user}", key=f"del_user_{user}", size="small"):
+                    utilisateurs.pop(user)
+                    sauvegarder_utilisateurs(utilisateurs)
+                    st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  CHARGEMENT ET LOGIQUE DES ACTIVITÉS (TON CODE ORIGINAL RESTAURÉ)
@@ -365,14 +388,14 @@ def afficher_liste_interactive(liste_a_afficher):
                 st.session_state[f"actif_del_{idx_orig}"] = True
                 st.warning(f"Supprimer définitivement : {a['activite']} ?")
                 c_del1, c_del2 = st.columns(2)
-                with col_del1:
+                with c_del1:
                     if st.button("🗑️ Oui", key=f"conf_del_{idx_orig}", type="primary"):
                         liste_brute = charger()
                         liste_brute.pop(idx_orig)
                         sauvegarder(liste_brute)
                         st.session_state[f"actif_del_{idx_orig}"] = False
                         st.rerun()
-                with col_del2:
+                with c_del2:
                     if st.button("Non", key=f"canc_del_{idx_orig}"):
                         st.session_state[f"actif_del_{idx_orig}"] = False
                         st.rerun()
