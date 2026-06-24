@@ -12,7 +12,6 @@ USER_FILE = "utilisateurs.json"
 
 def charger_utilisateurs():
     if not os.path.exists(USER_FILE):
-        # Par défaut, on crée le compte admin s'il n'existe pas
         default_users = {
             "admin": {"mdp": "admin123", "valide": True, "est_admin": True}
         }
@@ -177,7 +176,7 @@ with st.sidebar:
                     st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  CHARGEMENT ET LOGIQUE DES ACTIVITÉS (RESTAURATION COMPLETE)
+#  CHARGEMENT ET LOGIQUE DES ACTIVITÉS
 # ═══════════════════════════════════════════════════════════════════════════════
 activites = charger()
 
@@ -217,7 +216,7 @@ nb_unit = sum(1 for a in activites if a.get("asso") == "Unit")
 st.markdown(
     f"""
     <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 25px; border-radius: 8px; margin-bottom: 5px; border-bottom: 4px solid {C_BLEU_VIF};">
-        <h1 style="color: white; margin: 0; font-size: 28px;">🚑 Activités bénévoles de secourisme</h1>
+        <h1 style="color: white; margin: 0; font-size: 28px;">🔑 Panneau Admin - Activités de secourisme</h1>
         <p style="color: #A0BED8; margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">Protection Civile &nbsp;·&nbsp; Unit' Secours</p>
     </div>
     """,
@@ -381,7 +380,7 @@ def afficher_liste_interactive(liste_a_afficher):
                             st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            # --- ZONE DE SUPPRESSION EN LIGNE (CORRIGÉ ICI !) ---
+            # --- ZONE DE SUPPRESSION EN LIGNE ---
             if st.session_state.get(f"actif_del_{idx_orig}", False) or btn_supprimer:
                 st.session_state[f"actif_del_{idx_orig}"] = True
                 st.warning(f"Supprimer définitivement : {a['activite']} ?")
@@ -417,10 +416,20 @@ with onglet_voir:
     with col_gauche:
         afficher_liste_interactive(activites_a_venir)
     with col_droite:
-        st.markdown("### 🖨️ Action")
+        st.markdown("### 🖨️ Actions")
         if os.path.exists(PDF_FILE):
             with open(PDF_FILE, "rb") as f:
                 st.download_button(label="📥 Télécharger le PDF", data=f, file_name="Liste_activites_secours.pdf", mime="application/pdf", use_container_width=True)
+        
+        # --- BOUTON DE SÉCURITÉ POUR RÉCUPÉRER LE JSON EN LIGNE ---
+        st.markdown("---")
+        st.markdown("### 💾 Sauvegarde Locale (Sécurité)")
+        st.caption("Clique ici pour télécharger les données de ton site avant de modifier ton code sur PC ! Recopie ensuite ce fichier sur ton ordi.")
+        if os.path.exists(JSON_FILE):
+            with open(JSON_FILE, "r", encoding="utf-8") as f:
+                json_data = f.read()
+            st.download_button(label="📥 Télécharger activites.json", data=json_data, file_name="activites.json", mime="application/json", use_container_width=True)
+            
         st.markdown("---")
         st.markdown(legende_html, unsafe_allow_html=True)
 
