@@ -18,5 +18,15 @@
         "rdv": "",
         "inscrit": true,
         "note": "oui"
+    },
+    {
+        "asso": "APC",
+        "date": "28/11/2026",
+        "activite": "garde 15",
+        "lieu": "caen ",
+        "horaire": "8h - 8h",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
     }
 ]

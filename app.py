@@ -25,6 +25,10 @@ C_GRIS_MED   = "#666666"
 # --- CHARGEMENT DES DONNÉES ---
 activites = charger()
 
+# Pour pouvoir modifier/supprimer précisément, on ajoute un identifiant unique temporaire indexé
+for i, a in enumerate(activites):
+    a["_index_original"] = i
+
 # Tri automatique de toutes les activités par date
 try:
     activites.sort(key=lambda x: datetime.datetime.strptime(x["date"], "%d/%m/%Y"))
@@ -44,10 +48,9 @@ for a in activites:
         else:
             activites_passees.append(a)
     except Exception:
-        # En cas d'erreur de format de date, on la garde par défaut dans les activités à venir
         activites_a_venir.append(a)
 
-# Calcul des statistiques globales (sur la totalité des activités comme le PDF)
+# Calcul des statistiques globales
 nb_total = len(activites)
 nb_inscrit = sum(1 for a in activites if a.get("inscrit"))
 nb_souhaite = nb_total - nb_inscrit
@@ -55,57 +58,50 @@ nb_apc = sum(1 for a in activites if a.get("asso") == "APC")
 nb_unit = sum(1 for a in activites if a.get("asso") == "Unit")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  EN-TÊTE PRINCIPAL (STYLE BANDEAU DU PDF)
+#  EN-TÊTE PRINCIPAL & DASHBOARD
 # ═══════════════════════════════════════════════════════════════════════════════
 st.markdown(
     f"""
-    <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 25px; border-radius: 8px; margin-bottom: 5px; border-bottom: 4px solid {C_BLEU_VIF}; position: relative;">
+    <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 25px; border-radius: 8px; margin-bottom: 5px; border-bottom: 4px solid {C_BLEU_VIF};">
         <h1 style="color: white; margin: 0; font-size: 28px;">🚑 Activités bénévoles de secourisme</h1>
         <p style="color: #A0BED8; margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">Protection Civile &nbsp;·&nbsp; Unit' Secours</p>
-        <p style="color: #7FA8C8; margin: 10px 0 0 0; font-size: 13px; font-style: italic;">Ce document récapitule mes activités bénévoles.</p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ZONE DASHBOARD / CARTES STATISTIQUES
-# ═══════════════════════════════════════════════════════════════════════════════
 st.markdown(
     f"""
     <div style="background-color: #EEF3FA; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_BLEU_VIF};">
-            <div style="font-size: 26px; font-weight: bold; color: {C_BLEU_VIF}; margin-bottom: 2px;">{nb_total}</div>
-            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">TOTAL GLOBALE</div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; border-top: 5px solid {C_BLEU_VIF};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_BLEU_VIF};">{nb_total}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px;">TOTAL GENERAL</div>
             <div style="font-size: 10px; color: #999;">{len(activites_a_venir)} à venir · {len(activites_passees)} effectuée(s)</div>
         </div>
-        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_VERT};">
-            <div style="font-size: 26px; font-weight: bold; color: {C_VERT}; margin-bottom: 2px;">{nb_inscrit}</div>
-            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">CONFIRMÉES</div>
-            <div style="font-size: 10px; color: #999;">inscrit(e)</div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; border-top: 5px solid {C_VERT};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_VERT};">{nb_inscrit}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px;">CONFIRMÉES</div>
         </div>
-        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_ROUGE};">
-            <div style="font-size: 26px; font-weight: bold; color: {C_ROUGE}; margin-bottom: 2px;">{nb_souhaite}</div>
-            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">SOUHAITÉES</div>
-            <div style="font-size: 10px; color: #999;">à confirmer</div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; border-top: 5px solid {C_ROUGE};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_ROUGE};">{nb_souhaite}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px;">SOUHAITÉES</div>
         </div>
-        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_OR};">
-            <div style="font-size: 26px; font-weight: bold; color: {C_OR}; margin-bottom: 2px;">{nb_apc} <span style="font-size:16px; color:#aaa;">/</span> {nb_unit}</div>
-            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">APC / UNIT</div>
-            <div style="font-size: 10px; color: #999;">par association</div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; border-top: 5px solid {C_OR};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_OR};">{nb_apc} <span style="font-size:16px; color:#aaa;">/</span> {nb_unit}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px;">APC / UNIT</div>
         </div>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# --- ONGLETS PRINCIPAUX ---
-onglet_voir, onglet_effectuees, onglet_ajouter, onglet_modifier, onglet_supprimer = st.tabs([
-    "📋 Activités à venir", "📜 Activités effectuées", "➕ Ajouter un secours", "✏️ Modifier", "❌ Supprimer"
+# --- ONGLETS RESTRUCTURÉS ---
+onglet_voir, onglet_effectuees, onglet_ajouter = st.tabs([
+    "📋 Activités à venir", "📜 Activités effectuées", "➕ Ajouter un secours"
 ])
 
-# Fonction générique pour afficher une liste d'activités (pour éviter de répéter le code HTML)
-def afficher_liste_activites(liste_a_afficher):
+# Fonction pour afficher la liste interactive avec gestion de modification et suppression en ligne
+def afficher_liste_interactive(liste_a_afficher):
     if not liste_a_afficher:
         st.info("Aucune activité dans cette catégorie.")
         return
@@ -135,17 +131,12 @@ def afficher_liste_activites(liste_a_afficher):
                 <span>📅 &nbsp; {label_mois}</span>
                 <span style="font-size: 13px; opacity: 0.9;">{nb_m} activité{'s' if nb_m > 1 else ''}</span>
             </div>
-            <div style="background-color: {C_BLEU_MED}; color: white; padding: 6px 15px; font-size: 11px; font-weight: bold; display: flex; text-transform: uppercase;">
-                <div style="width: 15%;">Orga.</div>
-                <div style="width: 20%;">Date</div>
-                <div style="width: 45%;">Activité · Lieu · Note</div>
-                <div style="width: 20%; text-align: right;">Horaire DPS</div>
-            </div>
             """,
             unsafe_allow_html=True
         )
 
         for idx, a in enumerate(groupe["activites"]):
+            idx_orig = a["_index_original"]
             ok = a.get("inscrit", True)
             symbole = "■" if ok else "→"
 
@@ -160,13 +151,11 @@ def afficher_liste_activites(liste_a_afficher):
 
             if ok:
                 bg_color = "#FFFFFF" if idx % 2 == 0 else C_BLEU_PALE
-                border_style = "border-bottom: 1px solid #D8E2EE;"
                 text_color = C_GRIS_TEXTE
                 asso_color = C_VERT
                 act_color = C_BLEU_MED
             else:
                 bg_color = C_ROUGE_FOND
-                border_style = f"border-top: 1px solid {C_ROUGE_BORD}; border-bottom: 1px solid {C_ROUGE_BORD};"
                 text_color = C_ROUGE
                 asso_color = C_ROUGE
                 act_color = C_ROUGE
@@ -179,57 +168,113 @@ def afficher_liste_activites(liste_a_afficher):
             if a.get('note'):
                 details_html += f"<div style='font-size: 11px; font-style: italic; color: #777; margin-top: 2px;'>✎ {a['note']}</div>"
 
-            st.markdown(
-                f"""
-                <div style="background-color: {bg_color}; padding: 10px 15px; display: flex; align-items: top; {border_style} color: {text_color};">
-                    <div style="width: 15%; font-weight: bold; color: {asso_color};">{symbole} {a.get('asso', '')}</div>
-                    <div style="width: 20%; font-weight: bold;">{date_aff}</div>
-                    <div style="width: 45%;">{details_html}</div>
-                    <div style="width: 20%; text-align: right; font-weight: bold; color: {act_color};">{a.get('horaire', '')}</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+            # Création de la ligne avec deux colonnes : 1 pour le visuel PDF, 1 pour les actions rapides
+            col_contenu, col_actions = st.columns([6, 1])
+            
+            with col_contenu:
+                st.markdown(
+                    f"""
+                    <div style="background-color: {bg_color}; padding: 10px 15px; display: flex; align-items: top; border-bottom: 1px solid #D8E2EE; color: {text_color}; min-height: 85px;">
+                        <div style="width: 18%; font-weight: bold; color: {asso_color};">{symbole} {a.get('asso', '')}</div>
+                        <div style="width: 25%; font-weight: bold;">{date_aff}</div>
+                        <div style="width: 40%;">{details_html}</div>
+                        <div style="width: 17%; text-align: right; font-weight: bold; color: {act_color};">{a.get('horaire', '')}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                
+            with col_actions:
+                # Boutons d'action alignés verticalement
+                st.write("") # Petit espacement pour centrer
+                c_edit, c_del = st.columns(2)
+                with c_edit:
+                    btn_modifier = st.button("✏️", key=f"edit_{idx_orig}", help="Modifier cette activité")
+                with c_del:
+                    btn_supprimer = st.button("❌", key=f"del_{idx_orig}", help="Supprimer cette activité")
+
+            # --- ZONE DE MODIFICATION EN LIGNE (DYNAMIQUE) ---
+            if st.session_state.get(f"actif_edit_{idx_orig}", False) or btn_modifier:
+                st.session_state[f"actif_edit_{idx_orig}"] = True
+                st.markdown(f"<div style='border: 2px solid {C_BLEU_VIF}; padding: 15px; border-radius: 5px; background-color: #f9f9f9; margin: 10px 0;'>", unsafe_allow_html=True)
+                st.info(f"Modification de l'activité : {a['activite']}")
+                
+                with st.form(key=f"form_en_ligne_{idx_orig}"):
+                    m_asso = st.radio("Association", ["APC", "Unit"], index=0 if a["asso"] == "APC" else 1, horizontal=True)
+                    try:
+                        current_date = datetime.datetime.strptime(a["date"], "%d/%m/%Y").date()
+                    except:
+                        current_date = datetime.date.today()
+                    m_date_obj = st.date_input("Date", current_date)
+                    m_activite = st.text_input("Activité", value=a["activite"])
+                    m_lieu = st.text_input("Lieu", value=a["lieu"])
+                    m_horaire = st.text_input("Horaire DPS", value=a["horaire"])
+                    m_rdv = st.text_input("RDV local", value=a["rdv"])
+                    m_statut = st.radio("Statut", ["Inscrit(e) / Confirmé(e)", "Souhaité (non inscrit)"], index=0 if a["inscrit"] else 1, horizontal=True)
+                    m_note = st.text_area("Note", value=a["note"])
+                    
+                    c_form1, c_form2 = st.columns(2)
+                    with c_form1:
+                        if st.form_submit_button("💾 Enregistrer"):
+                            # On recharge la liste brute globale, applique le changement à l'index d'origine
+                            liste_brute = charger()
+                            liste_brute[idx_orig] = {
+                                "asso": m_asso, "date": m_date_obj.strftime("%d/%m/%Y"),
+                                "activite": m_activite, "lieu": m_lieu, "horaire": m_horaire,
+                                "rdv": m_rdv, "inscrit": m_statut == "Inscrit(e) / Confirmé(e)", "note": m_note
+                            }
+                            sauvegarder(liste_brute)
+                            st.session_state[f"actif_edit_{idx_orig}"] = False
+                            st.rerun()
+                    with c_form2:
+                        if st.form_submit_button("Annuler"):
+                            st.session_state[f"actif_edit_{idx_orig}"] = False
+                            st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            # --- ZONE DE SUPPRESSION EN LIGNE (DYNAMIQUE) ---
+            if st.session_state.get(f"actif_del_{idx_orig}", False) or btn_supprimer:
+                st.session_state[f"actif_del_{idx_orig}"] = True
+                st.warning(f"Êtes-vous sûr de vouloir supprimer définitivement : {a['activite']} ?")
+                c_del1, c_del2 = st.columns(2)
+                with c_del1:
+                    if st.button("🗑️ Oui, supprimer", key=f"conf_del_{idx_orig}", type="primary"):
+                        liste_brute = charger()
+                        liste_brute.pop(idx_orig)
+                        sauvegarder(liste_brute)
+                        st.session_state[f"actif_del_{idx_orig}"] = False
+                        st.rerun()
+                with c_del2:
+                    if st.button("Annuler", key=f"canc_del_{idx_orig}"):
+                        st.session_state[f"actif_del_{idx_orig}"] = False
+                        st.rerun()
 
 
-# Code HTML de la légende latérale commune
+# Légende commune
 legende_html = f"""
 <h3 style="font-size: 16px; color: {C_BLEU_NUIT}; margin-bottom: 5px;">ℹ️ LÉGENDE & INFO</h3>
 <div style="height: 2px; background-color: {C_BLEU_VIF}; margin-bottom: 15px;"></div>
 <div style="display: flex; margin-bottom: 12px; align-items: center;">
     <div style="background-color: {C_VERT}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">■</div>
-    <div>
-        <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Inscrit(e) et confirmé(e)</div>
-    </div>
+    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Inscrit(e) et confirmé(e)</div>
 </div>
 <div style="display: flex; margin-bottom: 12px; align-items: center;">
     <div style="background-color: {C_ROUGE}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">→</div>
-    <div>
-        <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Souhaité(e) / En attente</div>
-    </div>
+    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Souhaité(e) / En attente</div>
 </div>
 <div style="display: flex; margin-bottom: 12px; align-items: center;">
     <div style="background-color: {C_OR}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">◆</div>
-    <div>
-        <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">RDV au local</div>
-    </div>
-</div>
-<div style="background-color: #F5F7FA; padding: 10px; border-radius: 4px; border-left: 3px solid {C_BLEU_MED}; margin-top: 15px;">
-    <p style="font-size: 11px; color: {C_GRIS_MED}; margin: 0; line-height: 1.4;">
-        <b>APC</b> : Protection Civile<br>
-        <b>Unit</b> : Unit' Secours
-    </p>
+    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">RDV au local</div>
 </div>
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 1 : ACTIVITÉS À VENIR
+#  ONGLET 1 : À VENIR
 # ═══════════════════════════════════════════════════════════════════════════════
 with onglet_voir:
     col_gauche, col_droite = st.columns([3, 1])
     with col_gauche:
-        afficher_liste_activites(activites_a_venir)
+        afficher_liste_interactive(activites_a_venir)
     with col_droite:
         st.markdown("### 🖨️ Action")
         if os.path.exists(PDF_FILE):
@@ -239,17 +284,17 @@ with onglet_voir:
         st.markdown(legende_html, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 2 : ACTIVITÉS EFFECTUÉES (PASSÉES)
+#  ONGLET 2 : EFFECTUÉES
 # ═══════════════════════════════════════════════════════════════════════════════
 with onglet_effectuees:
     col_gauche, col_droite = st.columns([3, 1])
     with col_gauche:
-        afficher_liste_activites(activites_passees)
+        afficher_liste_interactive(activites_passees)
     with col_droite:
         st.markdown(legende_html, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 3 : AJOUTER
+#  ONGLET 3 : AJOUTER UN SECOURS
 # ═══════════════════════════════════════════════════════════════════════════════
 with onglet_ajouter:
     st.subheader("Ajouter une nouvelle activité")
@@ -258,82 +303,22 @@ with onglet_ajouter:
         date_obj = st.date_input("Date de l'activité", datetime.date.today())
         activite = st.text_input("Nom de l'activité")
         lieu = st.text_input("Lieu")
-        horaire = st.text_input("Horaire DPS (ex: 14h00 - 18h00)")
-        rdv = st.text_input("Horaire RDV local (laisser vide si aucun)")
+        horaire = st.text_input("Horaire DPS")
+        rdv = st.text_input("Horaire RDV local (optionnel)")
         statut_choix = st.radio("Statut", ["Inscrit(e) / Confirmé(e)", "Souhaité (non inscrit)"], horizontal=True)
-        note = st.text_area("Note (facultatif)")
+        note = st.text_area("Note (optionnel)")
         
-        soumettre = st.form_submit_button("Enregistrer l'activité")
-        
-        if soumettre:
+        if st.form_submit_button("Enregistrer l'activité"):
             if not activite or not lieu:
                 st.error("Veuillez remplir au moins l'activité et le lieu.")
             else:
                 date_str = date_obj.strftime("%d/%m/%Y")
-                nouvelle_act = {
+                liste_brute = charger()
+                liste_brute.append({
                     "asso": asso, "date": date_str, "activite": activite,
                     "lieu": lieu, "horaire": horaire, "rdv": rdv,
                     "inscrit": statut_choix == "Inscrit(e) / Confirmé(e)", "note": note
-                }
-                activites.append(nouvelle_act)
-                sauvegarder(activites)
-                st.success("Activité ajoutée avec succès ! Le site s'est mis à jour.")
+                })
+                sauvegarder(liste_brute)
+                st.success("Activité ajoutée avec succès !")
                 st.rerun()
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 4 : MODIFIER
-# ═══════════════════════════════════════════════════════════════════════════════
-with onglet_modifier:
-    st.subheader("Modifier une activité existante")
-    if not activites:
-        st.write("Aucune activité à modifier.")
-    else:
-        options_modif = [f"{i+1} - {a['date']} | {a['asso']} | {a['activite']}" for i, a in enumerate(activites)]
-        choix_modif = st.selectbox("Sélectionnez l'activité à modifier", options_modif)
-        index_modif = options_modif.index(choix_modif)
-        act_a_modifier = activites[index_modif]
-        
-        with st.form("form_modifier"):
-            m_asso = st.radio("Association", ["APC", "Unit"], index=0 if act_a_modifier["asso"] == "APC" else 1, horizontal=True)
-            try:
-                current_date = datetime.datetime.strptime(act_a_modifier["date"], "%d/%m/%Y").date()
-            except:
-                current_date = datetime.date.today()
-                
-            m_date_obj = st.date_input("Date de l'activité", current_date)
-            m_activite = st.text_input("Nom de l'activité", value=act_a_modifier["activite"])
-            m_lieu = st.text_input("Lieu", value=act_a_modifier["lieu"])
-            m_horaire = st.text_input("Horaire DPS", value=act_a_modifier["horaire"])
-            m_rdv = st.text_input("Horaire RDV local", value=act_a_modifier["rdv"])
-            m_statut = st.radio("Statut", ["Inscrit(e) / Confirmé(e)", "Souhaité (non inscrit)"], index=0 if act_a_modifier["inscrit"] else 1, horizontal=True)
-            m_note = st.text_area("Note", value=act_a_modifier["note"])
-            
-            valider_modif = st.form_submit_button("Enregistrer les modifications")
-            
-            if valider_modif:
-                activites[index_modif] = {
-                    "asso": m_asso, "date": m_date_obj.strftime("%d/%m/%Y"),
-                    "activite": m_activite, "lieu": m_lieu, "horaire": m_horaire,
-                    "rdv": m_rdv, "inscrit": m_statut == "Inscrit(e) / Confirmé(e)", "note": m_note
-                }
-                sauvegarder(activites)
-                st.success("Modifications enregistrées !")
-                st.rerun()
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 5 : SUPPRIMER
-# ═══════════════════════════════════════════════════════════════════════════════
-with onglet_supprimer:
-    st.subheader("Supprimer une activité")
-    if not activites:
-        st.write("Aucune activité à supprimer.")
-    else:
-        options_suppr = [f"{i+1} - {a['date']} | {a['asso']} | {a['activite']}" for i, a in enumerate(activites)]
-        choix_suppr = st.selectbox("Sélectionnez l'activité à supprimer", options_suppr)
-        index_suppr = options_suppr.index(choix_suppr)
-        
-        if st.button("❌ Supprimer définitivement", type="primary"):
-            activites.pop(index_suppr)
-            sauvegarder(activites)
-            st.success("Activité supprimée avec succès !")
-            st.rerun()
