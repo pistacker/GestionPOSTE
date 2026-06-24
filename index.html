@@ -6,90 +6,56 @@
     <title>Gestion DPS</title>
 
     <style>
-      :root {
-        --bg: #f4f7fb;
-        --card: #ffffff;
-        --text: #15324f;
-        --muted: #5c728d;
-        --primary: #1d5ea8;
-        --primary-dark: #124173;
-        --danger: #c94b4b;
-        --border: #dce6f2;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
       body {
         margin: 0;
         font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%);
-        color: var(--text);
+        background: #eef5ff;
+        color: #15324f;
       }
 
       .topbar {
-        background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+        background: #124173;
         color: white;
         padding: 20px;
+        text-align: center;
       }
 
       .container {
-        max-width: 1100px;
-        margin: auto;
-        padding: 20px;
-      }
-
-      .card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-      }
-
-      .auth {
-        max-width: 420px;
+        max-width: 500px;
         margin: 60px auto;
-      }
-
-      .field {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 14px;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       }
 
       input {
+        width: 100%;
         padding: 12px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
       }
 
-      .btn {
-        padding: 12px 16px;
-        border-radius: 999px;
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
         border: none;
+        border-radius: 10px;
+        background: #1d5ea8;
+        color: white;
         font-weight: bold;
         cursor: pointer;
       }
 
-      .btn-primary {
-        background: var(--primary);
-        color: white;
+      button:hover {
+        background: #124173;
       }
 
-      .alert {
-        padding: 12px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        display: none;
-      }
-
-      .alert.error {
-        display: block;
-        background: #fff3f3;
-        color: var(--danger);
+      .error {
+        color: red;
+        margin-top: 10px;
       }
     </style>
   </head>
@@ -97,31 +63,24 @@
   <body>
     <div class="topbar">
       <h1>Gestion DPS</h1>
-      <p>Connexion sécurisée</p>
     </div>
 
     <div class="container">
-      <div class="card auth">
-        <h2>Connexion</h2>
+      <h2>Connexion</h2>
+      <p>Entrez votre mot de passe</p>
 
-        <div id="message" class="alert"></div>
+      <input type="password" id="password" placeholder="Mot de passe" />
+      <button onclick="login()">Se connecter</button>
 
-        <div class="field">
-          <label>Mot de passe</label>
-          <input id="password" type="password" placeholder="••••••••" />
-        </div>
-
-        <button class="btn btn-primary" onclick="login()">Se connecter</button>
-      </div>
+      <div id="msg" class="error"></div>
     </div>
 
     <script>
-      // 🔥 IMPORTANT : URL FIXE DU WORKER
       const API_URL = "https://dps-api.thepewst.workers.dev/";
 
       async function login() {
         const password = document.getElementById("password").value;
-        const msg = document.getElementById("message");
+        const msg = document.getElementById("msg");
 
         try {
           const res = await fetch(API_URL + "/login", {
@@ -136,14 +95,11 @@
 
           const data = await res.json();
 
-          if (!res.ok) {
-            throw new Error(data.error || "Erreur de connexion");
-          }
+          if (!res.ok) throw new Error(data.error || "Erreur");
 
           localStorage.setItem("dps-auth", "true");
           window.location.href = "admin.html";
         } catch (e) {
-          msg.className = "alert error";
           msg.textContent = e.message;
         }
       }
