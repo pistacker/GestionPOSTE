@@ -1,5 +1,4 @@
-[
-    {
+[{
         "asso": "APC",
         "date": "08/11/2026",
         "activite": "chibre et donfin",
@@ -28,5 +27,257 @@
         "rdv": "",
         "inscrit": true,
         "note": ""
+    }
+]
+
+[{
+        "asso": "Unit",
+        "date": "23/06/2025",
+        "activite": "DPS Beach Party du Spot - Honfleur (Annulé - conditions météo)",
+        "lieu": "Honfleur",
+        "horaire": "16h-21h30",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Annulé"
+    },
+    {
+        "asso": "Unit",
+        "date": "26/06/2025",
+        "activite": "Diffusion Coupe du Monde",
+        "lieu": "Hippodrome",
+        "horaire": "18h-00h",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "Unit",
+        "date": "27/06/2025",
+        "activite": "Forum Métier Sécurité",
+        "lieu": "MSC",
+        "horaire": "10h-18h",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "03/07/2025",
+        "activite": "Les Médiévales de Bayeux",
+        "lieu": "Bayeux",
+        "horaire": "19h-23h30",
+        "rdv": "16h30",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "Unit",
+        "date": "04/07/2025",
+        "activite": "Diffusion Coupe du Monde",
+        "lieu": "Hippodrome",
+        "horaire": "18h30-1h00",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "Unit",
+        "date": "05/07/2025",
+        "activite": "Course Poursuite en Terre",
+        "lieu": "14350 Campeaux",
+        "horaire": "8h-19h",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "Unit",
+        "date": "09/07/2025",
+        "activite": "Dîner CDM",
+        "lieu": "Hippodrome",
+        "horaire": "18h00h30",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "13/07/2025",
+        "activite": "Animation Falaise - Fête Nationale",
+        "lieu": "Falaise",
+        "horaire": "18h-00h",
+        "rdv": "16h",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "Unit",
+        "date": "21/07/2025",
+        "activite": "Beach Party du Spot - Honfleur",
+        "lieu": "Honfleur",
+        "horaire": "16h-21h30",
+        "rdv": "",
+        "inscrit": false,
+        "note": "Je ne suis pas encore inscrit(e) mais j'aimerais participer"
+    },
+    {
+        "asso": "APC",
+        "date": "04/08/2025",
+        "activite": "Formation PSE 2",
+        "lieu": "",
+        "horaire": "9h-17h",
+        "rdv": "8h45",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "05/08/2025",
+        "activite": "Formation PSE 2",
+        "lieu": "",
+        "horaire": "9h-17h",
+        "rdv": "8h45",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "13/08/2025",
+        "activite": "Visioconférence - Presentation V and B Fest",
+        "lieu": "",
+        "horaire": "",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "21/08/2025",
+        "activite": "V and B Fest",
+        "lieu": "",
+        "horaire": "",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "22/08/2025",
+        "activite": "V and B Fest",
+        "lieu": "",
+        "horaire": "",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "23/08/2025",
+        "activite": "V and B Fest",
+        "lieu": "",
+        "horaire": "",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "29/08/2025",
+        "activite": "Rétro Festival",
+        "lieu": "Hippodrome",
+        "horaire": "10h-18h",
+        "rdv": "8h30",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "30/08/2025",
+        "activite": "Rétro Festival",
+        "lieu": "Hippodrome",
+        "horaire": "10h-18h",
+        "rdv": "8h30",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "06/09/2025",
+        "activite": "Trail de la Bonne Nouvelle",
+        "lieu": "Thury-Harcourt",
+        "horaire": "10h-15h",
+        "rdv": "8h",
+        "inscrit": false,
+        "note": "Je ne suis pas encore inscrit(e) mais j'aimerais participer"
+    },
+    {
+        "asso": "APC",
+        "date": "11/09/2025",
+        "activite": "Week-end Intégration - Kiné Soirée Étudiante",
+        "lieu": "",
+        "horaire": "22h-4h00",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Inscrit(e) sur le poste - place réservée (forte demande)"
+    },
+    {
+        "asso": "APC",
+        "date": "12/09/2025",
+        "activite": "Week-end Intégration - Kiné Soirée Étudiante",
+        "lieu": "",
+        "horaire": "22h-4h00",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Inscrit(e) sur le poste - place réservée (forte demande)"
+    },
+    {
+        "asso": "Unit",
+        "date": "19/09/2025",
+        "activite": "Cicle Dragon",
+        "lieu": "",
+        "horaire": "Sam. 8h30-00h",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Très attendu!❤❤"
+    },
+    {
+        "asso": "Unit",
+        "date": "20/09/2025",
+        "activite": "Cicle Dragon",
+        "lieu": "",
+        "horaire": "Dim. 9h30-18h",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Très attendu!❤❤"
+    },
+    {
+        "asso": "APC",
+        "date": "03/10/2025",
+        "activite": "Forum Initiation Geste Qui Sauve",
+        "lieu": "Fontenay-le-Pesnel",
+        "horaire": "8h-12h30",
+        "rdv": "",
+        "inscrit": true,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "08/11/2026",
+        "activite": "chibre et donfin",
+        "lieu": "caen",
+        "horaire": "5h-00h",
+        "rdv": "",
+        "inscrit": false,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "05/12/2026",
+        "activite": "garde &_",
+        "lieu": "caen",
+        "horaire": "5h-16h",
+        "rdv": "",
+        "inscrit": true,
+        "note": "Qui"
     }
 ]
