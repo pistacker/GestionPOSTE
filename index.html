@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestion DPS</title>
+
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --text: #15324f;
+        --muted: #5c728d;
+        --primary: #1d5ea8;
+        --primary-dark: #124173;
+        --danger: #c94b4b;
+        --border: #dce6f2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%);
+        color: var(--text);
+      }
+
+      .topbar {
+        background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+        color: white;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 20px;
+      }
+
+      .card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .auth {
+        max-width: 420px;
+        margin: 60px auto;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      input {
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+        border-radius: 999px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .alert {
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: none;
+      }
+
+      .alert.error {
+        display: block;
+        background: #fff3f3;
+        color: var(--danger);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="topbar">
+      <h1>Gestion DPS</h1>
+      <p>Connexion sécurisée</p>
+    </div>
+
+    <div class="container">
+      <div class="card auth">
+        <h2>Connexion</h2>
+
+        <div id="message" class="alert"></div>
+
+        <div class="field">
+          <label>Mot de passe</label>
+          <input id="password" type="password" placeholder="••••••••" />
+        </div>
+
+        <button class="btn btn-primary" onclick="login()">Se connecter</button>
+      </div>
+    </div>
+
+    <script>
+      // 🔥 IMPORTANT : URL FIXE DU WORKER
+      const API_URL = "https://dps-api.thepewst.workers.dev/";
+
+      async function login() {
+        const password = document.getElementById("password").value;
+        const msg = document.getElementById("message");
+
+        try {
+          const res = await fetch(API_URL + "/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              password,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || "Erreur de connexion");
+          }
+
+          localStorage.setItem("dps-auth", "true");
+          window.location.href = "admin.html";
+        } catch (e) {
+          msg.className = "alert error";
+          msg.textContent = e.message;
+        }
+      }
+    </script>
+  </body>
+</html>
