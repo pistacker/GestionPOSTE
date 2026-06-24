@@ -1,0 +1,22 @@
+[
+    {
+        "asso": "APC",
+        "date": "08/11/2026",
+        "activite": "chibre et donfin",
+        "lieu": "caen",
+        "horaire": "5h - 00h",
+        "rdv": "",
+        "inscrit": false,
+        "note": ""
+    },
+    {
+        "asso": "APC",
+        "date": "05/12/2026",
+        "activite": "garde &_",
+        "lieu": "caen",
+        "horaire": "5h - 16h",
+        "rdv": "",
+        "inscrit": true,
+        "note": "oui"
+    }
+]
