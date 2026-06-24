@@ -153,7 +153,7 @@ with st.sidebar:
                         st.warning(f"Demande de {user_attente} supprimée.")
                         st.rerun()
         
-        # --- NOUVELLE FONCTIONNALITÉ : LISTE DE TOUS LES UTILISATEURS ET MOTS DE PASSE ---
+        # --- LISTE DE TOUS LES UTILISATEURS ET MOTS DE PASSE ---
         st.markdown("---")
         st.markdown("### 👥 Liste des utilisateurs")
         
@@ -162,7 +162,6 @@ with st.sidebar:
             if info.get("est_admin"):
                 statut = "👑 Admin"
             
-            # Affichage compact et stylisé de chaque compte pour l'admin
             st.markdown(f"""
             <div style="background-color: #f1f4f9; padding: 8px; border-radius: 5px; margin-bottom: 8px; border-left: 3px solid {C_BLEU_VIF if info['valide'] else C_ROUGE};">
                 <div style="font-size: 13px; font-weight: bold; color: {C_BLEU_NUIT};">👤 {user}</div>
@@ -171,15 +170,14 @@ with st.sidebar:
             </div>
             """, unsafe_allow_html=True)
             
-            # Option pour supprimer un utilisateur existant directement depuis la liste
             if not info.get("est_admin"):
-                if st.button(f"Supprimer {user}", key=f"del_user_{user}", size="small"):
+                if st.button(f"Supprimer {user}", key=f"del_user_{user}", use_container_width=True):
                     utilisateurs.pop(user)
                     sauvegarder_utilisateurs(utilisateurs)
                     st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  CHARGEMENT ET LOGIQUE DES ACTIVITÉS (TON CODE ORIGINAL RESTAURÉ)
+#  CHARGEMENT ET LOGIQUE DES ACTIVITÉS (RESTAURATION COMPLETE)
 # ═══════════════════════════════════════════════════════════════════════════════
 activites = charger()
 
@@ -383,7 +381,7 @@ def afficher_liste_interactive(liste_a_afficher):
                             st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            # --- ZONE DE SUPPRESSION EN LIGNE ---
+            # --- ZONE DE SUPPRESSION EN LIGNE (CORRIGÉ ICI !) ---
             if st.session_state.get(f"actif_del_{idx_orig}", False) or btn_supprimer:
                 st.session_state[f"actif_del_{idx_orig}"] = True
                 st.warning(f"Supprimer définitivement : {a['activite']} ?")
