@@ -7,7 +7,7 @@ from gestion_dps import generer_pdf, JSON_FILE, PDF_FILE, MOIS, JOURS, charger, 
 
 st.set_page_config(page_title="Gestion DPS - Secourisme", page_icon="🚑", layout="wide")
 
-# Palette de couleurs identique au PDF
+# --- COULEURS IDENTIQUES AU PDF ---
 C_BLEU_NUIT  = "#0D2137"
 C_BLEU_MED   = "#1A4A7A"
 C_BLEU_VIF   = "#1E6FBB"
@@ -22,9 +22,6 @@ C_OR         = "#D4A017"
 C_GRIS_TEXTE = "#333333"
 C_GRIS_MED   = "#666666"
 
-st.title("🚑 Gestion des Activités de Secours")
-st.write("Consultez, ajoutez, modifiez ou supprimez les activités en temps réel.")
-
 # --- CHARGEMENT DES DONNÉES ---
 activites = charger()
 
@@ -34,147 +31,221 @@ try:
 except Exception:
     pass
 
-# --- EN-TÊTE / STATISTIQUES COPIÉES DU STYLE DU PDF ---
+# Calcul des statistiques exactes du PDF
 nb_total = len(activites)
 nb_inscrit = sum(1 for a in activites if a.get("inscrit"))
 nb_souhaite = nb_total - nb_inscrit
+nb_apc = sum(1 for a in activites if a.get("asso") == "APC")
+nb_unit = sum(1 for a in activites if a.get("asso") == "Unit")
 
-col_stat1, col_stat2, col_stat3 = st.columns(3)
-col_stat1.metric("Total Activités", nb_total)
-col_stat2.metric("Confirmées (■)", nb_inscrit)
-col_stat3.metric("Souhaitées (→)", nb_souhaite)
+# ═══════════════════════════════════════════════════════════════════════════════
+#  EN-TÊTE PRINCIPAL (STYLE BANDEAU DU PDF)
+# ═══════════════════════════════════════════════════════════════════════════════
+st.markdown(
+    f"""
+    <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 25px; border-radius: 8px; margin-bottom: 5px; border-bottom: 4px solid {C_BLEU_VIF}; position: relative;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">🚑 Activités bénévoles de secourisme</h1>
+        <p style="color: #A0BED8; margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">Protection Civile &nbsp;·&nbsp; Unit' Secours</p>
+        <p style="color: #7FA8C8; margin: 10px 0 0 0; font-size: 13px; font-style: italic;">Ce document récapitule mes prochaines activités bénévoles.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-st.markdown("---")
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ZONE DASHBOARD / CARTES STATISTIQUES (STYLE PAGE DE GARDE DU PDF)
+# ═══════════════════════════════════════════════════════════════════════════════
+# On recrée les 4 cartes blanches du PDF avec du HTML/CSS propre
+st.markdown(
+    f"""
+    <div style="background-color: #EEF3FA; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_BLEU_VIF};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_BLEU_VIF}; margin-bottom: 2px;">{nb_total}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">TOTAL</div>
+            <div style="font-size: 10px; color: #999;">activités</div>
+        </div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_VERT};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_VERT}; margin-bottom: 2px;">{nb_inscrit}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">CONFIRMÉES</div>
+            <div style="font-size: 10px; color: #999;">inscrit(e)</div>
+        </div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_ROUGE};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_ROUGE}; margin-bottom: 2px;">{nb_souhaite}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">SOUHAITÉES</div>
+            <div style="font-size: 10px; color: #999;">à confirmer</div>
+        </div>
+        <div style="background-color: white; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 5px solid {C_OR};">
+            <div style="font-size: 26px; font-weight: bold; color: {C_OR}; margin-bottom: 2px;">{nb_apc} <span style="font-size:16px; color:#aaa;">/</span> {nb_unit}</div>
+            <div style="font-size: 11px; font-weight: bold; color: {C_GRIS_TEXTE}; border-top: 1px solid #DDD; padding-top: 4px; text-transform: uppercase;">APC / UNIT</div>
+            <div style="font-size: 10px; color: #999;">par association</div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- ONGLETS PRINCIPAUX ---
 onglet_voir, onglet_ajouter, onglet_modifier, onglet_supprimer = st.tabs([
-    "📋 Liste comme le PDF", "➕ Ajouter", "✏️ Modifier", "❌ Supprimer"
+    "📋 Liste Complète (Style PDF)", "➕ Ajouter un secours", "✏️ Modifier", "❌ Supprimer"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 1 : VOIR & TÉLÉCHARGER (STYLE ALIGNÉ SUR LE PDF)
+#  ONGLET 1 : LISTE + EXPLICATIONS / LÉGENDE DU PDF
 # ═══════════════════════════════════════════════════════════════════════════════
 with onglet_voir:
-    col_btn1, col_btn2 = st.columns([2, 1])
-    with col_btn1:
-        st.subheader("Visualisation de la liste des secours")
-    with col_btn2:
-        # Bouton pour télécharger le PDF mis à jour
+    col_gauche, col_droite = st.columns([3, 1])
+
+    with col_gauche:
+        if not activites:
+            st.info("Aucune activité enregistrée.")
+        else:
+            # Regroupement par mois identique à la logique du PDF
+            groupes = {}
+            ordre_mois = []
+            for a in activites:
+                try:
+                    dt = datetime.datetime.strptime(a["date"], "%d/%m/%Y")
+                    cle = (dt.year, dt.month)
+                    label = f"{MOIS[dt.month]} {dt.year}"
+                except Exception:
+                    cle, label = (9999, 0), "AUTRES"
+                if cle not in groupes:
+                    groupes[cle] = {"label": label, "activites": []}
+                    ordre_mois.append(cle)
+                groupes[cle]["activites"].append(a)
+
+            # Rendu des tableaux mensuels
+            for cle in ordre_mois:
+                groupe = groupes[cle]
+                label_mois = groupe["label"]
+                nb_m = len(groupe["activites"])
+
+                # Bandeau de Mois (Bleu Vif)
+                st.markdown(
+                    f"""
+                    <div style="background-color: {C_BLEU_VIF}; color: white; padding: 10px 15px; border-radius: 4px 4px 0 0; margin-top: 15px; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between;">
+                        <span>📅 &nbsp; {label_mois}</span>
+                        <span style="font-size: 13px; opacity: 0.9;">{nb_m} activité{'s' if nb_m > 1 else ''}</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # En-tête de colonnes (Bleu Médium)
+                st.markdown(
+                    f"""
+                    <div style="background-color: {C_BLEU_MED}; color: white; padding: 6px 15px; font-size: 11px; font-weight: bold; display: flex; text-transform: uppercase;">
+                        <div style="width: 15%;">Orga.</div>
+                        <div style="width: 20%;">Date</div>
+                        <div style="width: 45%;">Activité · Lieu · Note</div>
+                        <div style="width: 20%; text-align: right;">Horaire DPS</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # Lignes d'activités
+                for idx, a in enumerate(groupe["activites"]):
+                    ok = a.get("inscrit", True)
+                    symbole = "■" if ok else "→"
+
+                    try:
+                        dt = datetime.datetime.strptime(a["date"], "%d/%m/%Y")
+                        jour_sem = JOURS[dt.weekday()]
+                        jour_num = dt.strftime("%d")
+                        mois_abr = MOIS[dt.month][:3].capitalize()
+                        date_aff = f"{jour_sem} {jour_num} {mois_abr}."
+                    except Exception:
+                        date_aff = a.get("date", "")
+
+                    if ok:
+                        bg_color = "#FFFFFF" if idx % 2 == 0 else C_BLEU_PALE
+                        border_style = "border-bottom: 1px solid #D8E2EE;"
+                        text_color = C_GRIS_TEXTE
+                        asso_color = C_VERT
+                        act_color = C_BLEU_MED
+                    else:
+                        bg_color = C_ROUGE_FOND
+                        border_style = f"border-top: 1px solid {C_ROUGE_BORD}; border-bottom: 1px solid {C_ROUGE_BORD};"
+                        text_color = C_ROUGE
+                        asso_color = C_ROUGE
+                        act_color = C_ROUGE
+
+                    details_html = f"<div style='font-weight: bold; font-size: 14px; color: {act_color};'>{a.get('activite', '')}</div>"
+                    if a.get('lieu'):
+                        details_html += f"<div style='font-size: 12px; color: {text_color}; margin-top: 2px;'>📍 {a['lieu']}</div>"
+                    if a.get('rdv'):
+                        details_html += f"<div style='font-size: 11px; color: {C_OR}; font-weight: bold; margin-top: 2px;'>◆ RDV : {a['rdv']}</div>"
+                    if a.get('note'):
+                        details_html += f"<div style='font-size: 11px; font-style: italic; color: #777; margin-top: 2px;'>✎ {a['note']}</div>"
+
+                    st.markdown(
+                        f"""
+                        <div style="background-color: {bg_color}; padding: 10px 15px; display: flex; align-items: top; {border_style} color: {text_color};">
+                            <div style="width: 15%; font-weight: bold; color: {asso_color};">{symbole} {a.get('asso', '')}</div>
+                            <div style="width: 20%; font-weight: bold;">{date_aff}</div>
+                            <div style="width: 45%;">{details_html}</div>
+                            <div style="width: 20%; text-align: right; font-weight: bold; color: {act_color};">{a.get('horaire', '')}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+
+    # --- BARRE LATÉRALE DROITE : ACTIONS & LÉGENDES ---
+    with col_droite:
+        st.markdown("### 🖨️ Action")
         if os.path.exists(PDF_FILE):
             with open(PDF_FILE, "rb") as f:
                 st.download_button(
-                    label="📥 Télécharger le fichier PDF",
+                    label="📥 Télécharger le PDF officiel",
                     data=f,
                     file_name="Liste_activites_secours.pdf",
                     mime="application/pdf",
                     use_container_width=True
                 )
-        else:
-            if st.button("Générer le PDF", use_container_width=True):
-                generer_pdf()
-                st.rerun()
-
-    if not activites:
-        st.info("Aucune activité enregistrée.")
-    else:
-        # Regroupement par mois identique à la logique de ton PDF
-        groupes = {}
-        ordre_mois = []
-        for a in activites:
-            try:
-                dt = datetime.datetime.strptime(a["date"], "%d/%m/%Y")
-                cle = (dt.year, dt.month)
-                label = f"{MOIS[dt.month]} {dt.year}"
-            except Exception:
-                cle, label = (9999, 0), "AUTRES"
-            if cle not in groupes:
-                groupes[cle] = {"label": label, "activites": []}
-                ordre_mois.append(cle)
-            groupes[cle]["activites"].append(a)
-
-        # Affichage des blocs par mois comme dans le PDF
-        for cle in ordre_mois:
-            groupe = groupes[cle]
-            label_mois = groupe["label"]
-            nb_m = len(groupe["activites"])
-
-            # 1. Bandeau du Mois (Bleu Vif)
-            st.markdown(
-                f"""
-                <div style="background-color: {C_BLEU_VIF}; color: white; padding: 10px 15px; border-radius: 4px 4px 0 0; margin-top: 20px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between;">
-                    <span>📅 &nbsp; {label_mois}</span>
-                    <span style="font-size: 14px; opacity: 0.9;">{nb_m} activité{'s' if nb_m > 1 else ''}</span>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # 2. En-tête des colonnes (Bleu Médium)
-            st.markdown(
-                f"""
-                <div style="background-color: {C_BLEU_MED}; color: white; padding: 6px 15px; font-size: 12px; font-weight: bold; display: flex; text-transform: uppercase;">
-                    <div style="width: 15%;">Orga.</div>
-                    <div style="width: 20%;">Date</div>
-                    <div style="width: 45%;">Activité · Lieu · Note</div>
-                    <div style="width: 20%; text-align: right;">Horaire DPS</div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # 3. Lignes d'activités (Couleurs alternées / Rouge si souhaité)
-            for idx, a in enumerate(groupe["activites"]):
-                ok = a.get("inscrit", True)
-                symbole = "■" if ok else "→"
-
-                # Formatage de la date lisible
-                try:
-                    dt = datetime.datetime.strptime(a["date"], "%d/%m/%Y")
-                    jour_sem = JOURS[dt.weekday()]
-                    jour_num = dt.strftime("%d")
-                    mois_abr = MOIS[dt.month][:3].capitalize()
-                    date_aff = f"{jour_sem} {jour_num} {mois_abr}."
-                except Exception:
-                    date_aff = a.get("date", "")
-
-                # Définition des couleurs de fond et bordures selon le statut (comme le PDF)
-                if ok:
-                    bg_color = "#FFFFFF" if idx % 2 == 0 else C_BLEU_PALE
-                    border_style = "border-bottom: 1px solid #D8E2EE;"
-                    text_color = C_GRIS_TEXTE
-                    asso_color = C_VERT
-                    act_color = C_BLEU_MED
-                else:
-                    bg_color = C_ROUGE_FOND
-                    border_style = f"border-top: 1px solid {C_ROUGE_BORD}; border-bottom: 1px solid {C_ROUGE_BORD};"
-                    text_color = C_ROUGE
-                    asso_color = C_ROUGE
-                    act_color = C_ROUGE
-
-                # Construction de la zone détails (Lieu, RDV, Notes)
-                details_html = f"<div style='font-weight: bold; font-size: 14px; color: {act_color};'>{a.get('activite', '')}</div>"
-                if a.get('lieu'):
-                    details_html += f"<div style='font-size: 12px; color: {text_color}; margin-top: 2px;'>📍 {a['lieu']}</div>"
-                if a.get('rdv'):
-                    details_html += f"<div style='font-size: 11px; color: {C_OR}; font-weight: bold; margin-top: 2px;'>◆ RDV : {a['rdv']}</div>"
-                if a.get('note'):
-                    details_html += f"<div style='font-size: 11px; font-style: italic; color: #777; margin-top: 2px;'>✎ {a['note']}</div>"
-
-                # Rendu de la ligne
-                st.markdown(
-                    f"""
-                    <div style="background-color: {bg_color}; padding: 10px 15px; display: flex; align-items: top; {border_style} color: {text_color};">
-                        <div style="width: 15%; font-weight: bold; color: {asso_color};">{symbole} {a.get('asso', '')}</div>
-                        <div style="width: 20%; font-weight: bold;">{date_aff}</div>
-                        <div style="width: 45%;">{details_html}</div>
-                        <div style="width: 20%; text-align: right; font-weight: bold; color: {act_color};">{a.get('horaire', '')}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+        
+        st.markdown("---")
+        
+        # Section Explications / Légende (Recréée à l'identique du PDF)
+        st.markdown(
+            f"""
+            <h3 style="font-size: 16px; color: {C_BLEU_NUIT}; margin-bottom: 5px;">ℹ️ LÉGENDE & INFO</h3>
+            <div style="height: 2px; background-color: {C_BLEU_VIF}; margin-bottom: 15px;"></div>
             
-            # Espacement après le bloc du mois
-            st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+            <div style="display: flex; margin-bottom: 12px; align-items: center;">
+                <div style="background-color: {C_VERT}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">■</div>
+                <div>
+                    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Inscrit(e) et confirmé(e)</div>
+                    <div style="font-size: 11px; color: {C_GRIS_MED};">Place réservée, présence validée.</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; margin-bottom: 12px; align-items: center;">
+                <div style="background-color: {C_ROUGE}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">→</div>
+                <div>
+                    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Souhaité(e) / En attente</div>
+                    <div style="font-size: 11px; color: {C_GRIS_MED};">Demande faite, en attente d'inscription.</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; margin-bottom: 12px; align-items: center;">
+                <div style="background-color: {C_OR}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">◆</div>
+                <div>
+                    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">RDV au local</div>
+                    <div style="font-size: 11px; color: {C_GRIS_MED};">Horaire de rassemblement / départ.</div>
+                </div>
+            </div>
+            
+            <div style="background-color: {C_GRIS_CLAIR if 'C_GRIS_CLAIR' in locals() else '#F5F7FA'}; padding: 10px; border-radius: 4px; border-left: 3px solid {C_BLEU_MED}; margin-top: 15px;">
+                <p style="font-size: 11px; color: {C_GRIS_MED}; margin: 0; line-height: 1.4;">
+                    <b>APC</b> : Association de Protection Civile<br>
+                    <b>Unit</b> : Unit' Secours
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  ONGLET 2 : AJOUTER
@@ -205,7 +276,7 @@ with onglet_ajouter:
                 }
                 activites.append(nouvelle_act)
                 sauvegarder(activites)
-                st.success("Activité ajoutée avec succès ! Le PDF a été mis à jour.")
+                st.success("Activité ajoutée avec succès ! Le dashboard et le PDF ont été mis à jour.")
                 st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -245,7 +316,7 @@ with onglet_modifier:
                     "rdv": m_rdv, "inscrit": m_statut == "Inscrit(e) / Confirmé(e)", "note": m_note
                 }
                 sauvegarder(activites)
-                st.success("Modifications enregistrées et PDF mis à jour !")
+                st.success("Modifications enregistrées ! Mise à jour globale effectuée.")
                 st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
