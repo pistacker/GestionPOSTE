@@ -7,6 +7,34 @@ from gestion_dps import generer_pdf, JSON_FILE, PDF_FILE, MOIS, JOURS, charger, 
 
 st.set_page_config(page_title="Gestion DPS - Secourisme", page_icon="🚑", layout="wide")
 
+# --- FICHIER DES UTILISATEURS ---
+USER_FILE = "utilisateurs.json"
+
+def charger_utilisateurs():
+    if not os.path.exists(USER_FILE):
+        # Par défaut, on crée le compte admin s'il n'existe pas
+        default_users = {
+            "admin": {"mdp": "admin123", "valide": True, "est_admin": True}
+        }
+        sauvegarder_utilisateurs(default_users)
+        return default_users
+    with open(USER_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def sauvegarder_utilisateurs(data):
+    with open(USER_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+utilisateurs = charger_utilisateurs()
+
+# --- INITIALISATION DES SESSIONS STREAMLIT ---
+if "connecte" not in st.session_state:
+    st.session_state["connecte"] = False
+if "username" not in st.session_state:
+    st.session_state["username"] = ""
+if "est_admin" not in st.session_state:
+    st.session_state["est_admin"] = False
+
 # --- COULEURS IDENTIQUES AU PDF ---
 C_BLEU_NUIT  = "#0D2137"
 C_BLEU_MED   = "#1A4A7A"
@@ -22,7 +50,114 @@ C_OR         = "#D4A017"
 C_GRIS_TEXTE = "#333333"
 C_GRIS_MED   = "#666666"
 
-# --- CHARGEMENT DES DONNÉES ---
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ÉCRAN D'ACCÈS : CONNEXION / CRÉATION DE COMPTE
+# ═══════════════════════════════════════════════════════════════════════════════
+if not st.session_state["connecte"]:
+    st.markdown(
+        f"""
+        <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-bottom: 4px solid {C_BLEU_VIF}; text-align:center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">🚑 Espace Sécurisé - Planning Secourisme</h1>
+            <p style="color: #A0BED8; margin: 5px 0 0 0; font-size: 14px;">Veuillez vous connecter ou demander un accès</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    choix_ecran = st.radio("Choisissez une action :", ["Se connecter", "Créer un compte 📝"], horizontal=True)
+    
+    if choix_ecran == "Se connecter":
+        st.subheader("Connexion")
+        with st.form("form_connexion"):
+            log_in = st.text_input("Nom d'utilisateur (Login)").strip()
+            mdp_in = st.text_input("Mot de passe", type="password")
+            btn_co = st.form_submit_button("Entrer sur le site")
+            
+            if btn_co:
+                if log_in in utilisateurs:
+                    user_info = utilisateurs[log_in]
+                    if user_info["mdp"] == mdp_in:
+                        if user_info["valide"]:
+                            st.session_state["connecte"] = True
+                            st.session_state["username"] = log_in
+                            st.session_state["est_admin"] = user_info.get("est_admin", False)
+                            st.success(f"Connexion réussie ! Bienvenue {log_in}.")
+                            st.rerun()
+                        else:
+                            st.warning("⏳ Votre compte est bien créé, mais il est en attente de validation par l'administrateur.")
+                    else:
+                        st.error("Mot de passe incorrect.")
+                else:
+                    st.error("Cet utilisateur n'existe pas.")
+                    
+    elif choix_ecran == "Créer un compte 📝":
+        st.subheader("Demande d'inscription")
+        st.info("Une fois le formulaire validé, votre compte sera envoyé à l'administrateur pour approbation.")
+        with st.form("form_inscription"):
+            log_new = st.text_input("Choisissez un nom d'utilisateur (Login)").strip()
+            mdp_new = st.text_input("Choisissez un mot de passe", type="password")
+            btn_ins = st.form_submit_button("Envoyer la demande d'inscription")
+            
+            if btn_ins:
+                if not log_new or not mdp_new:
+                    st.error("Veuillez remplir tous les champs.")
+                elif log_new in utilisateurs:
+                    st.error("Ce nom d'utilisateur est déjà pris.")
+                else:
+                    # On ajoute l'utilisateur avec le statut valide = False
+                    utilisateurs[log_new] = {
+                        "mdp": mdp_new,
+                        "valide": False,
+                        "est_admin": False
+                    }
+                    sauvegarder_utilisateurs(utilisateurs)
+                    st.success("🎉 Demande envoyée avec succès ! Dès que l'administrateur aura validé, vous pourrez vous connecter.")
+
+    st.stop() # Bloque le reste de l'application tant qu'on n'est pas loggé
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  BARRE LATÉRALE (DECONNEXION & ESPACE ADMIN)
+# ═══════════════════════════════════════════════════════════════════════════════
+with st.sidebar:
+    st.markdown(f"👤 Connecté : **{st.session_state['username']}**")
+    if st.session_state["est_admin"]:
+        st.markdown("⭐ Statut : **Administrateur**")
+    if st.button("🚪 Se déconnecter", type="primary", use_container_width=True):
+        st.session_state["connecte"] = False
+        st.session_state["username"] = ""
+        st.session_state["est_admin"] = False
+        st.rerun()
+
+    # --- ZONE DE VALIDATION DES DEMANDES POUR L'ADMINISTRATEUR ---
+    if st.session_state["est_admin"]:
+        st.markdown("---")
+        st.markdown("### 🔒 Demandes en attente")
+        
+        # Trouver les utilisateurs non validés
+        en_attente = [u for u, info in utilisateurs.items() if not info["valide"]]
+        
+        if not en_attente:
+            st.write("Aucune demande en attente. 👍")
+        else:
+            for user_attente in en_attente:
+                st.write(f"👉 **{user_attente}** demande un accès.")
+                col_ok, col_no = st.columns(2)
+                with col_ok:
+                    if st.button("✅ Valider", key=f"val_{user_attente}"):
+                        utilisateurs[user_attente]["valide"] = True
+                        sauvegarder_utilisateurs(utilisateurs)
+                        st.success(f"Compte {user_attente} activé !")
+                        st.rerun()
+                with col_no:
+                    if st.button("🗑️ Refuser", key=f"ref_{user_attente}"):
+                        utilisateurs.pop(user_attente)
+                        sauvegarder_utilisateurs(utilisateurs)
+                        st.warning(f"Demande de {user_attente} supprimée.")
+                        st.rerun()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CHARGEMENT ET LOGIQUE DES ACTIVITÉS (TON CODE ORIGINAL RESTAURÉ)
+# ═══════════════════════════════════════════════════════════════════════════════
 activites = charger()
 
 # Pour pouvoir modifier/supprimer précisément, on ajoute un identifiant unique temporaire indexé
@@ -57,9 +192,7 @@ nb_souhaite = nb_total - nb_inscrit
 nb_apc = sum(1 for a in activites if a.get("asso") == "APC")
 nb_unit = sum(1 for a in activites if a.get("asso") == "Unit")
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  EN-TÊTE PRINCIPAL & DASHBOARD
-# ═══════════════════════════════════════════════════════════════════════════════
+# En-tête principal de l'application après connexion
 st.markdown(
     f"""
     <div style="background-color: {C_BLEU_NUIT}; color: white; padding: 25px; border-radius: 8px; margin-bottom: 5px; border-bottom: 4px solid {C_BLEU_VIF};">
@@ -95,12 +228,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- ONGLETS RESTRUCTURÉS ---
+# --- ONGLETS PRINCIPAUX ---
 onglet_voir, onglet_effectuees, onglet_ajouter = st.tabs([
     "📋 Activités à venir", "📜 Activités effectuées", "➕ Ajouter un secours"
 ])
 
-# Fonction pour afficher la liste interactive avec gestion de modification et suppression en ligne
 def afficher_liste_interactive(liste_a_afficher):
     if not liste_a_afficher:
         st.info("Aucune activité dans cette catégorie.")
@@ -168,7 +300,6 @@ def afficher_liste_interactive(liste_a_afficher):
             if a.get('note'):
                 details_html += f"<div style='font-size: 11px; font-style: italic; color: #777; margin-top: 2px;'>✎ {a['note']}</div>"
 
-            # Création de la ligne avec deux colonnes : 1 pour le visuel PDF, 1 pour les actions rapides
             col_contenu, col_actions = st.columns([6, 1])
             
             with col_contenu:
@@ -185,19 +316,17 @@ def afficher_liste_interactive(liste_a_afficher):
                 )
                 
             with col_actions:
-                # Boutons d'action alignés verticalement
-                st.write("") # Petit espacement pour centrer
+                st.write("") 
                 c_edit, c_del = st.columns(2)
                 with c_edit:
                     btn_modifier = st.button("✏️", key=f"edit_{idx_orig}", help="Modifier cette activité")
                 with c_del:
                     btn_supprimer = st.button("❌", key=f"del_{idx_orig}", help="Supprimer cette activité")
 
-            # --- ZONE DE MODIFICATION EN LIGNE (DYNAMIQUE) ---
+            # --- ZONE DE MODIFICATION EN LIGNE ---
             if st.session_state.get(f"actif_edit_{idx_orig}", False) or btn_modifier:
                 st.session_state[f"actif_edit_{idx_orig}"] = True
                 st.markdown(f"<div style='border: 2px solid {C_BLEU_VIF}; padding: 15px; border-radius: 5px; background-color: #f9f9f9; margin: 10px 0;'>", unsafe_allow_html=True)
-                st.info(f"Modification de l'activité : {a['activite']}")
                 
                 with st.form(key=f"form_en_ligne_{idx_orig}"):
                     m_asso = st.radio("Association", ["APC", "Unit"], index=0 if a["asso"] == "APC" else 1, horizontal=True)
@@ -216,7 +345,6 @@ def afficher_liste_interactive(liste_a_afficher):
                     c_form1, c_form2 = st.columns(2)
                     with c_form1:
                         if st.form_submit_button("💾 Enregistrer"):
-                            # On recharge la liste brute globale, applique le changement à l'index d'origine
                             liste_brute = charger()
                             liste_brute[idx_orig] = {
                                 "asso": m_asso, "date": m_date_obj.strftime("%d/%m/%Y"),
@@ -232,25 +360,23 @@ def afficher_liste_interactive(liste_a_afficher):
                             st.rerun()
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            # --- ZONE DE SUPPRESSION EN LIGNE (DYNAMIQUE) ---
+            # --- ZONE DE SUPPRESSION EN LIGNE ---
             if st.session_state.get(f"actif_del_{idx_orig}", False) or btn_supprimer:
                 st.session_state[f"actif_del_{idx_orig}"] = True
-                st.warning(f"Êtes-vous sûr de vouloir supprimer définitivement : {a['activite']} ?")
+                st.warning(f"Supprimer définitivement : {a['activite']} ?")
                 c_del1, c_del2 = st.columns(2)
-                with c_del1:
-                    if st.button("🗑️ Oui, supprimer", key=f"conf_del_{idx_orig}", type="primary"):
+                with col_del1:
+                    if st.button("🗑️ Oui", key=f"conf_del_{idx_orig}", type="primary"):
                         liste_brute = charger()
                         liste_brute.pop(idx_orig)
                         sauvegarder(liste_brute)
                         st.session_state[f"actif_del_{idx_orig}"] = False
                         st.rerun()
-                with c_del2:
-                    if st.button("Annuler", key=f"canc_del_{idx_orig}"):
+                with col_del2:
+                    if st.button("Non", key=f"canc_del_{idx_orig}"):
                         st.session_state[f"actif_del_{idx_orig}"] = False
                         st.rerun()
 
-
-# Légende commune
 legende_html = f"""
 <h3 style="font-size: 16px; color: {C_BLEU_NUIT}; margin-bottom: 5px;">ℹ️ LÉGENDE & INFO</h3>
 <div style="height: 2px; background-color: {C_BLEU_VIF}; margin-bottom: 15px;"></div>
@@ -262,15 +388,9 @@ legende_html = f"""
     <div style="background-color: {C_ROUGE}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">→</div>
     <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">Souhaité(e) / En attente</div>
 </div>
-<div style="display: flex; margin-bottom: 12px; align-items: center;">
-    <div style="background-color: {C_OR}; color: white; width: 24px; height: 24px; border-radius: 4px; text-align: center; font-weight: bold; line-height: 24px; margin-right: 10px;">◆</div>
-    <div style="font-size: 12px; font-weight: bold; color: {C_GRIS_TEXTE};">RDV au local</div>
-</div>
 """
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 1 : À VENIR
-# ═══════════════════════════════════════════════════════════════════════════════
+# --- ONGLET 1 : À VENIR ---
 with onglet_voir:
     col_gauche, col_droite = st.columns([3, 1])
     with col_gauche:
@@ -283,9 +403,7 @@ with onglet_voir:
         st.markdown("---")
         st.markdown(legende_html, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 2 : EFFECTUÉES
-# ═══════════════════════════════════════════════════════════════════════════════
+# --- ONGLET 2 : EFFECTUÉES ---
 with onglet_effectuees:
     col_gauche, col_droite = st.columns([3, 1])
     with col_gauche:
@@ -293,9 +411,7 @@ with onglet_effectuees:
     with col_droite:
         st.markdown(legende_html, unsafe_allow_html=True)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ONGLET 3 : AJOUTER UN SECOURS
-# ═══════════════════════════════════════════════════════════════════════════════
+# --- ONGLET 3 : AJOUTER UN SECOURS ---
 with onglet_ajouter:
     st.subheader("Ajouter une nouvelle activité")
     with st.form("form_ajouter", clear_on_submit=True):
